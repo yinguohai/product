@@ -1,0 +1,418 @@
+{include file='/public/_meta'}
+{include file='/public/_nav' first='首页' second='详情' threed='查看'}
+
+<div class="text-l ml-10  mt-20 mb-50">
+    <form action="/index/Index/showProduct" method="post" name="form-show-product" id="form-show-product">
+        <input type="hidden" name="pro_id" id="pro_id" value='{notempty name="condition.pro_id"}{$condition.pro_id}{/notempty}' placeholder="序号" style="width:100px" class="input-text radius mr-5">
+        <input type="text" name="encode" id="encode" value='{notempty name="condition.encode"}{$condition.encode}{/notempty}' placeholder=" 编码" style="width:150px" class="input-text radius mr-5">
+        <input type="text" name="pro_name" id="pro_name" value='{notempty name="condition.pro_name"}{$condition.pro_name}{/notempty}' placeholder="产品简称" style="width:150px" class="input-text radius mr-5">
+        <input type="text" name="pro_enname" id="pro_enname" value='{notempty name="condition.pro_enname"}{$condition.pro_enname}{/notempty}' placeholder="产品英文名" style="width:150px" class="input-text radius mr-5">
+        <input type="text" name="status" id="status" value='{notempty name="condition.status"}{$condition.status}{/notempty}' placeholder="状态" style="width:100px" class="input-text radius mr-5">
+        <input type="text" name="v_name" id="v_name" value='{notempty name="condition.v_name"}{$condition.v_name}{/notempty}' placeholder="厂家" style="width:150px" class="input-text radius mr-5">
+        <input type="text" name="v_num" id="v_num" value='{notempty name="condition.v_num"}{$condition.v_num}{/notempty}' placeholder="货号" style="width:150px" class="input-text radius mr-5">
+        <input type="text" name="source_href" id="source_href" value='{notempty name="condition.source_href"}{$condition.source_href}{/notempty}' placeholder="链接" style="width:150px" class="input-text radius mr-5">
+        <input type="text" name="starttime" id="starttime" value='' placeholder="开始时间:xxxx/xx/xx" style="width:150px" class="input-text radius mr-5">
+        <input type="text" name="endtime" id="endtime" value='' placeholder="结束时间:xxxx/xx/xx" style="width:150px" class="input-text radius mr-5">
+        <button name=""  class="btn btn-success radius" id="search" type="submit"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+    </form>
+    <hr class="mt-10 mb-10"/>
+    <form action="/index/Index/importFile" method="post" enctype="multipart/form-data" class="f-l" id="form-import-data">
+        <input type="hidden" name="sss" value="ssss4">
+        <span class="btn-upload form-group">
+            <input class="input-text upload-url radius" type="text" name="uploadproductFile" id="uploadproductFile" readonly><a href="javascript:void();" class="btn btn-primary  radius"><i class="iconfont">&#xf0020;</i> 浏览文件</a>
+            <input type="file" multiple name="productFile" class="input-file">
+        </span>
+        <button class="btn btn-success radius" id="addProduct" type="submit"><i class="Hui-iconfont">&#xe642;</i> 上传/查找</button>
+    </form>
+    <form method="post" action="/index/Index/exportProduct" id="form-export-data">
+        <button class="btn btn-warning radius f-l ml-50" id="exportProduct" onclick="exportData(this)"><i class="Hui-iconfont">&#xe641;</i> 批量导出</button>
+    </form>
+    <button name="" id="add" class="btn btn-success radius f-l ml-30" type="button" onclick="addProduct()"><i class="Hui-iconfont">&#xe610;</i> 添加产品</button>
+    <button name="" id="delete" class="btn btn-danger radius f-l ml-30" type="button" onclick="deleteProductAll()"><i class="Hui-iconfont">&#xe609;</i> 批量删除</button>
+</div>
+<table class="table table-border table-bg table-bordered">
+    <thead>
+        <tr>
+            <td class="col-md-12" class="text-r"><input type="checkbox"  onclick="selectproids(this)" sameproid="proids"></td>
+            <th class="text-c col-1">序号</th>
+            <th class="text-c col-1 ">时间</th>
+            <th class="text-c col-1">产品编码</th>
+            <th class="text-c col-1">中文名称</th>
+            <th class="text-c col-1">英文名称</th>
+            <th class="text-c col-1">投放区域</th>
+            <th class="text-c col-sm-12">状态</th>
+            <th class="text-c col-1">图片</th>
+            <th class="text-c col-6">来源</th>
+            <th class="text-c col-1">操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {foreach $details as $v}
+        <tr>
+            <td class="text-r"><input type="checkbox" proid="{$v.pro_id}" class="proids"></td>
+            <td class="text-c">{$v.pro_id}</td>
+            <td>{$v.addtime|date="Y-m-d H:i",###}</td>
+            <td>{$v.encode}</td>
+            <td>{$v.pro_name}</td>
+            <td>{$v.pro_enname}</td>
+            <td>{$v.zone}</td>
+            <td>{$v.status}</td>
+            <td>
+                <img src="{$v.img}" width="200" height="100"  alt="">
+                <span>更多》》</span>
+            </td>
+            <td>
+
+                <table class="table table-border">
+                    <tr>
+                        <th class="col-1">选择</th>
+                        <th class="col-3 text-c">厂家</th>
+                        <th class="col-1 text-c">货号</th>
+                        <th class="col-4 text-c">链接</th>
+                    </tr>
+                    <tr>
+                        <td colspan="1" >
+                            <div class="check-box" style="padding:0;">
+                                <input type="checkbox" id="checkbox-{$v.pro_id}" onclick="selectAll(this)">
+                                <label for="checkbox-{$v.pro_id}">全选</label>
+                            </div>
+                        </td>
+                        <td colspan="3">
+                        <button class="btn btn-success-outline  radius ml-5 mb-5" onclick="addSource(this)" proid="{$v.pro_id}">
+                            <i class="Hui-iconfont">&#xe600;</i>
+                            添加来源
+                        </button>
+                        <button class="btn btn-warning-outline radius ml-5 mb-5" onclick="editSource(this)">
+                            <i class="Hui-iconfont">&#xe647;</i>
+                            修改来源
+                        </button>
+                        <button class="btn btn-danger-outline radius ml-5 mb-5" onclick="deleteSource(this)">
+                            <i class="Hui-iconfont">&#xe609;</i>
+                            删除来源
+                        </button>
+                        <button class="btn btn-secondary-outline radius ml-5 mb-5" onclick="listSource(this)"  proid="{$v.pro_id}">
+                            <i class="Hui-iconfont">&#xe6d5;</i>
+                            更多来源
+                        </button>
+
+                        </td>
+                    </tr>
+                    {foreach name="v['source']" item="s"}
+                    <tr class="venderSource">
+                        <td><input type="checkbox" class="source" value="{$s.v_id}" id="{$s.v_id}"></td>
+                        <td>{$s.v_name}</td>
+                        <td>{$s.v_num}</td>
+                        <td>{$s.v_source}</td>
+                    </tr>
+                    {/foreach}
+                </table>
+            </td>
+            <td>
+                <button class="btn btn-warning-outline radius ml-5 mb-5" onclick="editProduct(this)" pro_encode="{$v.encode}" pro_id="{$v.pro_id}">
+                    <i class="Hui-iconfont">&#xe647;</i>
+                    修改
+                </button>
+                <button class="btn btn-danger-outline radius ml-5 mb-5" onclick=" deleteProduct(this)" pro_encode="{$v.encode}" pro_id="{$v.pro_id}">
+                    <i class="Hui-iconfont">&#xe609;</i>
+                    删除
+                </button>
+            </td>
+        </tr>
+        {/foreach}
+    </tbody>
+</table>
+<div>
+    {$list->render()}
+</div>
+{include file='/public/_footer'}
+{include file='public/_form'}
+<script type="text/javascript">
+
+    /**
+     * 添加来源
+     * @param obj
+     */
+    function addSource(obj){
+        proid=$(obj).attr('proid');
+        //获取指定的
+        layer.open({
+            type: 2,
+            maxmin:true,
+            title:'添加来源:序号-'+proid,
+            area:['500px','350px'],
+            content: '/index/Index/addSource?type=add&pro_id='+proid,
+        });
+    }
+
+    /**
+     * 获取产品源id
+     * @param obj
+     * @returns {*}
+     */
+    function getVid(obj){
+        //获取指定的
+        _object=$(obj);
+        vid=[];
+        source=_object.closest('tr').siblings('tr').find('.source:checked');
+        //获取proid的值
+        $.each(source,function(i,e){
+            vid.push($(e).val());
+        })
+        if(vid.length<=0){
+            layer.msg('请先选择产品源', {icon:2,time:1000});
+            return false;
+        }
+        return vid;
+    }
+
+    /**
+     * 删除产品源
+     * @param obj
+     * @returns {boolean}
+     */
+    function deleteSource(obj){
+        vid=getVid(obj);
+        if(vid == false)
+            return false;
+        //询问框
+        layer.confirm('确定要删除吗？', {
+            btn: ['删除', '取消'] //可以无限个按钮
+        }, function(index, layero){
+            $.ajax({
+                'url':'/index/Index/deleteSource',
+                'data':{v_id:vid},
+                'dataType':'JSON',
+                'type':'POST',
+                success:function(e){
+                    if(e.code==1){
+                        layer.msg(e.msg,{icon:1,time:1000})
+                    }else{
+                        layer.msg(e.msg,{icon:2,time:1000})
+                    }
+                    refresh(2000)
+                },
+                error:function(e){
+                    layer.msg(e.msg,{icon:2,time:1000});
+                    refresh(2000);
+                },
+            })
+
+        });
+    }
+
+    /**
+     * 定时刷新当前页面
+     * @param time
+     */
+    function refresh(time){
+        setTimeout(function(){
+            location.reload();
+        },time);
+    }
+
+    /**
+     * 多选产品源
+     * @param obj
+     */
+    function selectAll(obj){
+        _object=$(obj);
+        if(_object.is(':checked')){
+            _object.closest('tr').siblings('tr').find('.source').prop('checked',true).stop();
+        }else{
+            _object.closest('tr').siblings('tr').find('.source').prop('checked',false).stop();
+        }
+    }
+
+    /**
+     * 编辑产品源
+     * @param obj
+     * @returns {boolean}
+     */
+    function editSource(obj){
+        //获取指定的
+        vid = getVid(obj);
+        if(vid == false )
+            return false;
+        layer.open({
+            type: 2,
+            area:['500px','600px'],
+            maxmin:true,
+            content: '/index/Index/editSource?type=edit&vid='+vid,
+        });
+    }
+
+    /**
+     * @param proids 产品id号
+     * @param  msg  提示信息
+     *删除产品处理涵数
+     */
+    function deleteHandelProduct(proids,msg){
+        layer.confirm(msg, {
+            btn: ['删除', '取消'] //可以无限个按钮
+        }, function(index, layero){
+            $.ajax({
+                'url':'/index/Index/deleteProduct',
+                'data':{pro_id:proids},
+                'dataType':'JSON',
+                'type':'POST',
+                success:function(e){
+                    if(e.code==1){
+                        layer.msg(e.msg,{icon:1,time:1000})
+                        refresh(3000)
+                    }else{
+                        layer.msg(e.msg,{icon:2,time:5000})
+                        refresh(6000)
+                    }
+                },
+                error:function(e){
+                    layer.msg(e.msg,{icon:2,time:6000});
+                    refresh(7000);
+                },
+            })
+        });
+    }
+
+    /**
+     * 删除产品源
+     * @param obj
+     */
+    function deleteProduct(obj){
+        pro_id=$(obj).attr('pro_id');
+        pro_encode=$(obj).attr('pro_encode');
+        deleteHandelProduct(pro_id,'确定要删除产品 '+pro_encode+' 吗？');
+    }
+    /**
+     * 批量删除指定产品
+     */
+    function deleteProductAll(){
+        //获取选择了的产品栏
+        proids=$('.proids:checked');
+        if(proids.length<1){
+            layer.msg('请先选择产品栏',{icon:2})
+            return false ;
+        }
+        pros=[];
+        $.each(proids,function(i,e){
+            pros.push($(e).attr('proid'));
+        })
+        deleteHandelProduct(pros,'确定要删除吗?');
+    }
+
+    /**
+     * 浏览更多产品源
+     * @param obj
+     */
+    function listSource(obj){
+        proid=$(obj).attr('proid');
+        $.ajax({
+            'url':'/index/Index/listVender',
+            'data':{pro_id:proid},
+            'dataType':'JSON',
+            'type':'POST',
+            success:function(e){
+                html='';
+                content=e.data;
+                for(var i in content){
+                    html +='<tr class="venderSource">'
+                         +'<td><input type="checkbox" class="source" value="'+ content[i].v_id+'" id="'+content[i].v_id+'"></td>'
+                         +'<td>'+content[i].v_name+'</td>'
+                         +'<td>'+content[i].v_num+'</td>'
+                         +'<td>'+content[i].source_href+'</td>'
+                         +'</tr>';
+                }
+                $(obj).closest('tr').siblings('tr.venderSource').remove();
+                $(obj).closest('tr').after(html);
+                layer.msg(e.msg,{icon:1,time:1000});
+            },
+            error:function(e){
+                layer.msg(e.msg,{icon:2,time:1000});
+            }
+        });
+    }
+
+    /**
+     * 选取所有的产品
+     * @param obj
+     */
+    function selectProids(obj){
+        _object=$(obj);
+        _proidclass=_object.attr('sameproid')
+        if(_object.is(':checked')){
+            $('.'+_proidclass).prop('checked',true).stop();
+        }else{
+            $('.'+_proidclass).prop('checked',false).stop();
+        }
+    }
+
+    /**
+     * 添加产品
+     */
+    function addProduct(){
+        /*
+        $("#form-add-product").validate({
+            rules:{},
+            onkeyup:false,
+            focusCleanup:true,
+            success:"valid",
+            submitHandler:function(form){
+                $(form).ajaxSubmit({
+                    type: 'post',
+                    url: "" ,
+                    dataType:'JSON',
+                    success: function(e){
+                        icotype= (e.code=='-1')?2:1;
+                        layer.msg(e.msg,{icon:icotype,time:1000});
+                    },
+                    error: function(XmlHttpRequest, textStatus, errorThrown){
+                        layer.msg('error!',{icon:1,time:1000});
+                    }
+                });
+            }
+        });
+        */
+        //获取指定的
+        layer.open({
+            type: 2,
+            maxmin:true,
+            title:'添加产品',
+            area:['780px','660px'],
+            content: '/index/Index/addProduct?type=add'
+        });
+    }
+
+    /**
+     * 编辑产品
+     * @param obj
+     */
+    function editProduct(obj){
+        proid=$(obj).attr('pro_id')
+        pro_encode=$(obj).attr('pro_encode')
+
+        //获取指定的
+        layer.open({
+            type: 2,
+            maxmin:true,
+            title:'编辑产品'+pro_encode,
+            area:['780px','660px'],
+            content: '/index/Index/editProduct?type=edit&pro_id='+proid
+        });
+    }
+
+    /**
+     * 导出数据
+     */
+    function exportData(obj){
+        var form=$('#form-show-product').children('input');
+        var descForm=obj.closest('form');
+        form.each(function(index,element){
+            if(!(element.value=='undefined' || element.value==null || element.value=="")){
+                newInput=document.createElement('input');
+                newInput.type='hidden';
+                newInput.name=element.name;
+                newInput.value=element.value.trim();
+                descForm.appendChild(newInput);
+            }
+        });
+        form.submit();
+    }
+</script>

@@ -1,0 +1,132 @@
+{include file='/public/_meta'}
+<article class="page-container">
+    <form class="form form-horizontal" id="form-admin-add">
+        <input type="hidden" name="type" value="{$proinfo.type}"/>
+        {notempty name="proinfo.pro_id"}
+            <input type="hidden" name="pro_id" value="{$proinfo['pro_id']}">
+        {/notempty}
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>产品编码：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input type="text" class="input-text radius size-L" value='{$proinfo.info.encode|default=""}' placeholder="产品编码"  name="encode">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>中文名称：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input type="text" class="input-text radius size-L" autocomplete="off" value='{$proinfo.info.pro_name|default=""}' placeholder="中文名称"  name="pro_name">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>英文名：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input type="text" class="input-text radius size-L" autocomplete="off" value='{$proinfo.info.pro_enname|default=""}'  placeholder="英文名"  name="pro_enname">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>区域：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input type="text" class="input-text radius size-L" autocomplete="off"  value='{$proinfo.info.zone|default=""}' placeholder="区域"  name="zone">
+            </div>
+        </div>
+
+        <div class="row">
+            <label class="form-label col-xs-4 col-sm-3"><span class="c-red"></span>图片：</label>
+            <div class="formControls">
+                <span class="btn-upload form-group">
+                        <input class="input-text upload-url radius ml-10" value='{$proinfo.info.img|default=""}' type="text" id="uploadimg" readonly="">
+                        <a href="javascript:void();" class="btn btn-primary upload-btn radius"><i class="Hui-iconfont"></i> 浏览文件</a>
+
+                        <input type="file" multiple="" name="img" value='{$proinfo.info.img|default=""}' class="input-file">
+                        <input type="hidden" multiple="" name="oldimg" value='{$proinfo.info.img|default=""}'>
+
+                </span>
+            </div>
+
+            <img src='{$proinfo.info.img|default=""}' alt=""  style="display: block; margin:10px auto 5px;" height="100" width="100">
+
+        </div>
+
+        {if condition="($proinfo['type'] == 'add')"}
+        <br><hr/><br>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>货号：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input type="text" class="input-text radius size-L" autocomplete="off"  placeholder="货号"  name="v_num">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>厂家名：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input type="text" class="input-text radius size-L" autocomplete="off"  placeholder="厂家名"  name="v_name">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>产品源：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input type="text" class="input-text radius size-L" autocomplete="off"  placeholder="产品源"  name="source_href">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">排序：</label>
+            <div class="formControls col-xs-8 col-sm-9"> <span class="select-box">
+                    <select class="select" size="1" name="v_sort">
+                        {foreach name='proinfo.source_sort'  item='ssort' key='k'}
+                            <option value="{$k}">{$ssort}</option>
+                        {/foreach}
+                    </select>
+                    </span> </div>
+        </div>
+        {/if}
+
+        <div class="row cl">
+            <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-3">
+                <input class="btn btn-primary radius" type="submit" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
+                <input class="btn btn-primary radius" type="button" onclick="cancelButton()" value="&nbsp;&nbsp;取消&nbsp;&nbsp;">
+            </div>
+        </div>
+    </form>
+</article>
+
+{include file='/public/_footer'}
+{include file='public/_form'}
+<script type="text/javascript">
+    $("#form-admin-add").validate({
+        rules:{
+            v_name:{required:true},
+            v_num:{required:true},
+            source_href:{required:true},
+            encode:{ required:true},
+            pro_name:{ required:true},
+            pro_enname:{ required:true},
+            zone:{ required:true},
+        },
+        onkeyup:false,
+        focusCleanup:true,
+        success:"valid",
+        submitHandler:function(form){
+            $(form).ajaxSubmit({
+                type: 'post',
+                url: "/index/Index/saveProduct" ,
+                dataType:'JSON',
+                success: function(e){
+                    layer.msg(e.msg,{icon:1,time:1000},function(){
+                        var index = parent.layer.getFrameIndex(window.name);
+                        parent.$('.btn-refresh').click();
+                        parent.location.reload();
+                    });
+                },
+                error: function(XmlHttpRequest, textStatus, errorThrown){
+                    layer.msg('error!',{icon:1,time:1000});
+                }
+            });
+        }
+    });
+    //取消
+    function cancelButton(){
+        var index = parent.layer.getFrameIndex(window.name);
+        parent.$('.btn-refresh').click();
+        parent.layer.close(index);
+        parent.localhost.reload();
+    }
+</script>

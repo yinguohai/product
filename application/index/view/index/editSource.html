@@ -1,0 +1,124 @@
+{include file='/public/_meta'}
+<article class="page-container">
+    <form class="form form-horizontal" id="form-admin-add">
+        <input type="hidden" name="type" value="{$proinfo['type']}"/>
+        {if condition="$proinfo.type eq 'add'"}
+            <input type="hidden" name="pro_id" value="{$proinfo['pro_id']}">
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>厂家：</label>
+                <div class="formControls col-xs-8 col-sm-9">
+                    <input type="text" class="input-text" value="" placeholder="厂家名称"  name="v_name">
+                </div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>货号：</label>
+                <div class="formControls col-xs-8 col-sm-9">
+                    <input type="text" class="input-text" autocomplete="off" value="" placeholder="货号"  name="v_num">
+                </div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>链接：</label>
+                <div class="formControls col-xs-8 col-sm-9">
+                    <input type="text" class="input-text" autocomplete="off"  placeholder="链接"  name="source_href">
+                </div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3">排序：</label>
+                <div class="formControls col-xs-8 col-sm-9"> <span class="select-box">
+                    <select class="select" size="1" name="v_sort">
+                        {foreach name='proinfo.source_sort'  item='ssort' key='k'}
+                            <option value="{$k}">{$ssort}</option>
+                        {/foreach}
+                    </select>
+                    </span> </div>
+            </div>
+        {else/}
+            {foreach name="proinfo.vlist" item="v"}
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>厂家：</label>
+                <div class="formControls col-xs-8 col-sm-9">
+                    <input type="hidden" name="v_id[]" value="{$v.v_id}">
+                    <input type="text" class="input-text"  placeholder="厂家名称"  name="v_name[]" value="{$v.v_name}">
+
+                </div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>货号：</label>
+                <div class="formControls col-xs-8 col-sm-9">
+                    <input type="text" class="input-text" autocomplete="off"  placeholder="货号"  name="v_num[]" value="{$v.v_num}">
+                </div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>链接：</label>
+                <div class="formControls col-xs-8 col-sm-9">
+                    <input type="text" class="input-text" autocomplete="off"  placeholder="链接"  name="source_href[]" value="{$v.source_href}">
+                </div>
+            </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">排序：</label>
+            <div class="formControls col-xs-8 col-sm-9"> <span class="select-box">
+				<select class="select" size="1" name="v_sort[]">
+                    {foreach name='proinfo.source_sort'  item='ssort' key='k'}
+                            <option value="{$k}"  {eq name="v.v_sort" value="$k"}selected{/eq}>{$ssort}</option>
+                    {/foreach}
+				</select>
+				</span> </div>
+        </div>
+
+
+            <br/><hr/>
+            {/foreach}
+        {/if}
+        <div class="row cl">
+            <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-3">
+                <input class="btn btn-primary radius" type="submit" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
+                <input class="btn btn-primary radius" type="button" onclick="cancelButton()" value="&nbsp;&nbsp;取消&nbsp;&nbsp;">
+            </div>
+        </div>
+    </form>
+</article>
+
+{include file='/public/_footer'}
+{include file='public/_form'}
+<script type="text/javascript">
+    $("#form-admin-add").validate({
+        rules:{
+            v_name:{
+                required:true,
+            },
+            v_num:{
+                required:true,
+            },
+            source_href:{
+                required:true,
+            }
+        },
+        onkeyup:false,
+        focusCleanup:true,
+        success:"valid",
+        submitHandler:function(form){
+            $(form).ajaxSubmit({
+                type: 'post',
+                url: "/index/Index/saveSource" ,
+                dataType:'JSON',
+                success: function(e){
+                    layer.msg(e.msg,{icon:1,time:1000},function(){
+                        var index = parent.layer.getFrameIndex(window.name);
+                        parent.$('.btn-refresh').click();
+                        parent.location.reload();
+                    });
+                },
+                error: function(XmlHttpRequest, textStatus, errorThrown){
+                    layer.msg('error!',{icon:1,time:1000});
+                }
+            });
+        }
+    });
+    //取消
+    function cancelButton(){
+        var index = parent.layer.getFrameIndex(window.name);
+        parent.$('.btn-refresh').click();
+        parent.layer.close(index);
+        parent.localhost.reload();
+    }
+</script>
