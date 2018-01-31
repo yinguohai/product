@@ -104,6 +104,7 @@ class Index extends Mycontroller
         $where = $indexLogical->getProductWhere($this->request->post()); //获取条件
         if ($extwhere){
             $where = $extwhere;
+            $o_where['pro_id'] = implode(',',$extwhere['p.pro_id'][1]);
         }
         if($this->request->isGet()){
             if($this->request->get()){
@@ -324,7 +325,9 @@ class Index extends Mycontroller
         $result = [];
         foreach ($productInfo as $k => $v) {
             //比较结果
-            $flag = ImageHash::isImageFileSimilar($fileInfo['path'], $pathDir . $v['img']) || ImageHash::isImageFileSimilar($fileInfo['path'], $pathDir . $v['photo_key']);
+            $flag = ImageHash::isImageFileSimilar($fileInfo['path'], $pathDir . $v['img']);
+            if(!$flag && $v['photo_key'])
+                $flag = ImageHash::isImageFileSimilar($fileInfo['path'], $pathDir . $v['photo_key']);
             if ($flag) {
                 array_push($result, $v);
             }

@@ -28,6 +28,8 @@ class IndexLogical
                 $where['p.addtime'] = ['egt', $v];
             }elseif(strcasecmp($k,'endtime')===0){
                 $where['p.addtime']=['elt',$v];
+            }elseif(strcasecmp($k,'pro_id')===0){
+                $where['p.pro_id']=['in',explode(',',$v)];
             }else{
                 $where['p.'.$k]=['like','%'.$v.'%'];
             }
