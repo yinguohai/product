@@ -2,19 +2,79 @@
 namespace app\index\controller;
 
 use app\index\model\Product;
-use think\Controller;
 use think\Request ;
 use app\index\model\Vender;
 use app\index\logical\IndexLogical;
 use think\model\Collection;
 use \think\Db;
 
-class Index extends Controller
+class Index extends Mycontroller
 {
     function __construct(Request $request = null)
     {
         parent::__construct($request);
     }
+
+    /*
+     * 删除商品的图片
+     * @return int
+     */
+    public function delphoto_gallery(){
+        $photo_id = $this->request->post('photo_id');
+
+        $productModel = new Product();
+        $result = $productModel->del_photo_gallery($photo_id);
+        echo $result?$result:0;
+    }
+
+    /*
+     * 获取单个商品的多个图片
+     * @return json
+     */
+    public function getProduct_photos(){
+        //$admin_info = session('admin_info');
+        //$admin_info['admin_id']
+        $productModel = new Product();
+        $pro_id = $this->request->post('pro_id');
+        $where['use_index_id'] = $pro_id;
+        $where['is_del'] = 0;
+        $list =  $productModel->get_photo_gallery($where);
+        echo $list?$list:'0';
+    }
+
+    /*
+     * 上传多张产品图片
+     */
+    public function upload_image(){
+        $imgPath=ROOT_PATH.'public'.DS.'uploads'.DS.date('Ymd',time()).DS;
+        if(!file_exists($imgPath))
+            mkdir($imgPath);
+        //$admin_info = session('admin_info');
+        $pro_id = $this->request->post('pro_id');
+        $productModel = new Product();
+        $filename               = upload($_FILES['file'],$imgPath);
+        $data['photo_key']      = $filename;
+        $data['create_user_id'] = 1;//$admin_info['admin_id']
+        $data['use_index_id']   = $pro_id;
+        $data['create_time']    = date('Y-m-d H:i:s');
+        $id = $productModel->saveProduct_images($data);
+
+        $old_ids =  $productModel->getProduct(['pro_id'=>$pro_id]);
+        if($old_ids['data']['img_details']){
+            $new_ids = $old_ids['data']['img_details'].','.$id;
+        }else{
+            $new_ids = $id;
+        }
+
+        $data2['pro_id'] = $pro_id;
+        $data2['img_details'] = $new_ids;
+        $productModel->saveProduct($data2,true);
+    }
+
+    public function load_images(){
+        return view('popups/load_images');
+    }
+    //=================================以上为图片上传相关接口===========
 
     public function index()
     {
@@ -26,24 +86,41 @@ class Index extends Controller
      * @param array $where
      * @return string
      */
-    public function showProduct($extwhere = [])
+    public function showProduct()
     {
+        $extwhere = array();
+        if (request()->file('productFile')) {
+            $file = request()->file('productFile');
+            $fileType = $file->getMime();
+            if (strpos($fileType, 'image') === false) {
+                $this->importProduct();
+            } else {
+                $extwhere = $this->searchImage();
+            }
+        }
         $index = new Product();
         $indexLogical = new IndexLogical();
-        //获取条件
-        $where = $indexLogical->getProductWhere($this->request->post());
-        if (!empty($extwhere))
+        $o_where = $this->request->post();
+        $where = $indexLogical->getProductWhere($this->request->post()); //获取条件
+        if ($extwhere){
             $where = $extwhere;
-        $result = $index->getProducts($where);
-        if (!empty($result['content'])) {
-            $details = getChild($result['content'], ['v_id', 'v_num', 'v_name', 'v_source', 'v_sort'], '@@');
-            $this->assign('details', $details);
-            $this->assign('list', $result['list']);
-            $condition = $indexLogical->getHandleWhere($where);
-            $this->assign('condition', $condition);
-        } else {
-            return $this->error();
         }
+        if($this->request->isGet()){
+            if($this->request->get()){
+                if ($this->request->get('pro_id')) {
+                    $where['p.pro_id'] = ['in',explode(',',$this->request->get('pro_id'))];
+                }else{
+                    $p_w = $this->request->get();
+                    $where = $indexLogical->getProductWhere_get($p_w); //获取条件
+                }
+            }
+        }
+
+        $result = $index->getProducts($where);
+        $details = getChild($result['content'], ['v_id', 'v_num', 'v_name', 'v_source', 'v_sort'], '@@');
+        $this->assign('details', $details);
+        $this->assign('list', $result['list']);
+        $this->assign('condition', $o_where);
         return $this->view->fetch('showProduct');
     }
 
@@ -253,7 +330,7 @@ class Index extends Controller
             }
         }
         $where['p.pro_id'] = ['in', array_column($result, 'pro_id')];
-        return $this->showProduct($where);
+        return $where;
     }
 
     //导入产品表
@@ -308,8 +385,8 @@ class Index extends Controller
                 }
             }
         }
-        $result = getChild($result, [8, 9, 10], '-', false);
-        $result = getChild($result, [11, 12, 13], '-', false, true);
+        $result = getChild($result, [8, 9,10], '@', false);
+        $result = getChild($result, [11, 12,13], '@', false, true);
         //入库操作
         $productData = [];
         $proFiled = ['addtime', 'company', 'encode', 'pro_name', 'pro_enname', 'zone', 'status', 'img'];
@@ -321,9 +398,16 @@ class Index extends Controller
         $vendorModel = new Vender();
         foreach ($result as $k => $v) {
             $productData = array_combine($proFiled, array_slice($v, 0, 8));
+            //校验字段的长度
+
             $pro_id = $productModel->saveProduct($productData);
-            if (empty($pro_id)) {
-                $errorTotal[] = $v;
+
+            if ( ! is_numeric($pro_id) || empty($pro_id) ) {
+                //统计插入失败的产品
+                $errorTotal[$pro_id['msg']][]=$pro_id['encode'];
+                //删除上传了的图片
+                if(file_exists($imgPath.basename($v[7])))
+                    unlink($imgPath.basename($v[7]));
                 //插入失败
             } else {
                 foreach ($v['source'] as $vv) {
@@ -342,12 +426,21 @@ class Index extends Controller
                 if (empty($vendor_id)) {
                     $errorTotal[] = $v;
                     $productModel->deleteProduct(['pro_id' => $pro_id], true);
+                    $errorTotal['vender'][]=$pro_id;
                 }
             }
         }
-        $msg = '导入完成，其中导入失败的订单总数为' . count($errorTotal) . '  *********  商品编码：' . implode(' , ', array_column($errorTotal, 2));
+        //组合错误信息提示
+        $msg = '产品总数为 '.count($result).' 个，其中导入失败总数为 : ' . (count($errorTotal,true)-count($errorTotal))."个<hr/>";
+
+        foreach($errorTotal as $k => $v){
+            $msg .= "<br/>".$k."  : ".count($v)."个<br/><br/>".implode(' , ',$v)."<br/><hr/>";
+        }
+
+        //删除上传的excel表格文件的文件与图片
+        unlink($fileInfo['path']);
         $waitTime = empty(count($errorTotal)) ? 3 : 20;
-        $this->success($msg, '', '', $waitTime);
+        $this->success($msg, 'showProduct', '', 100);
     }
 
     public function exportProduct()
@@ -445,6 +538,65 @@ class Index extends Controller
         $objWriter->save("php://output");
 
     }
+
+
+    //导入产品表
+    public function xiaohua_importFile(){
+        $path=ROOT_PATH.'public'.DS.'uploads'.DS.'excel'.DS;
+        $imgPath=ROOT_PATH.'public'.DS.'uploads'.DS.date('Ymd',time()).DS;
+        if(!file_exists($imgPath))
+            mkdir($imgPath);
+        $descPath=DS.'uploads'.DS.date('Ymd',time()).DS;
+        //文件上传，自定义的
+        $fileInfo = uploadFile('productFile',$path,['xls','xlsx']);
+        if(empty($fileInfo['filename']))
+            $this->error($fileInfo['msg']);
+        //加载PHPExcel类,识别  xlsx后缀文件
+        $obj=$this->getReaderExcel($fileInfo['ext']);
+        //加载PHPExcel类，识别   xls后缀文件
+        $objFile= $obj->load($fileInfo['path']);
+
+        //获取表中的第一个工作表，如果要获取第二个，把0改为1，依次类推
+        $currentSheet=$objFile->getSheet(0);
+
+        //获取总列数
+        $allColumn = $currentSheet->getHighestColumn();
+        //获取总行数
+        $allRow = $currentSheet->getHighestRow();
+        //循环获取表中的数据，$currentRow表示当前行，从哪行开始读取数据，索引值从0开始
+        for ($currentRow = 2; $currentRow <= $allRow; $currentRow++) {
+            //从哪列开始，A表示第一列
+            for ($currentColumn = 'A'; $currentColumn <= $allColumn; $currentColumn++) {
+                //数据坐标
+                $address = $currentColumn . $currentRow;
+                //读取到的数据，保存到数组$arr中
+                $data[$currentRow][$currentColumn] = $currentSheet->getCell($address)->getValue();
+            }
+        }
+        $this->save_import($data);
+    }
+
+    //保存导入数据
+    public function save_import($data) {
+        foreach ($data as $k => $v) {
+            if ($k > 1) {
+                $date['area'] = ucfirst(strtolower($v['A']));
+                $date['city'] = ucfirst(strtolower($v['B']));
+                $date['provice'] = ucfirst(strtolower($v['C']));
+                $result = Db::name('inta')->insert($date);
+            }
+        }
+        if ($result) {
+            $num = Db::name('inta')->count();
+            $this->success('数据导入成功' . '，现在inta表有<span style="color:red">' . $num . '</span>条数据了！');
+        } else {
+            $this->error('数据导入失败');
+        }
+    }
+
+
+
+
 }
 
 

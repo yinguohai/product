@@ -51,6 +51,12 @@ function p($arr){
     print_r($arr);
     die;
 }
+function pr($arr){
+    echo '<pre/>';
+    is_array($arr)?print_r($arr):var_dump($arr);
+    echo '<hr>';
+    die;
+}
 /**
  * 将数组中的指定列做为子元素列出来
  * @param $arr  需要查找的数组
@@ -156,4 +162,62 @@ function uploadFile($filename='',$path='',$type=[]){
             return  ['msg'=>$file->getError()];
         }
     }
+}
+
+/**
+ * 图片上传
+ * @param array $file 图片信息
+ * @param string $path 图片上传路径
+ */
+function upload($file,$path){
+    if(!empty($file["type"])){
+        if($file["type"] == "image/gif"){
+            $file_type='.gif';
+        }elseif($file["type"] == "image/jpeg" || $file["type"] == "image/pjpeg"){
+            $file_type='.jpeg';
+        }elseif($file["type"] == "image/png"){
+            $file_type='.png';
+        }elseif($file["type"]=="image/jpg"){
+            $file_type='.jpg';
+        }elseif($file["type"]=="application/octet-stream"){
+            $file_type='.jpg';
+        }elseif($file["type"]=="application\/octet-stream"){
+            $file_type='.jpg';
+        }
+        $file_name=date('Ymd_').strtoupper(md5(microtime().$file['tmp_name'].rand()));
+        move_uploaded_file($file['tmp_name'], $path.$file_name.$file_type);
+        $newfilename = '/uploads/'.date('Ymd').'/'.$file_name.$file_type;
+    }else{
+        $newfilename="";
+    }
+    return $newfilename;
+}
+
+//加密
+function string2secret($str)
+{
+    $key = "123";
+    $td = mcrypt_module_open(MCRYPT_DES,'','ecb','');
+    $iv = mcrypt_create_iv(mcrypt_enc_get_iv_size($td), MCRYPT_RAND);
+    $ks = mcrypt_enc_get_key_size($td);
+    $key = substr(md5($key), 0, $ks);
+    mcrypt_generic_init($td, $key, $iv);
+    $secret = mcrypt_generic($td, $str);
+    mcrypt_generic_deinit($td);
+    mcrypt_module_close($td);
+    return $secret;
+}
+//解密
+function secret2string($sec)
+{
+    $key = "123";
+    $td = mcrypt_module_open(MCRYPT_DES,'','ecb','');
+    $iv = mcrypt_create_iv(mcrypt_enc_get_iv_size($td), MCRYPT_RAND);
+    $ks = mcrypt_enc_get_key_size($td);
+    $key = substr(md5($key), 0, $ks);
+    mcrypt_generic_init($td, $key, $iv);
+    $string = mdecrypt_generic($td, $sec);
+    mcrypt_generic_deinit($td);
+    mcrypt_module_close($td);
+    return trim($string);
 }

@@ -1313,6 +1313,7 @@ class Query
             $simple = false;
         }
         if (is_array($listRows)) {
+
             $config   = array_merge(Config::get('paginate'), $listRows);
             $listRows = $config['list_rows'];
         } else {

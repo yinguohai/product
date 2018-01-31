@@ -3,6 +3,7 @@ namespace app\index\model;
 use think\Collection;
 use think\Model;
 use think\Db;
+
 class Product extends Model{
     private $filed=true;
     protected function initialize()
@@ -40,6 +41,27 @@ class Product extends Model{
                         unset($where[$k]);
                 }
             }
+
+            $where2 = array();
+            $query = array();
+            if(!empty($where))
+            if(!empty($where['p.pro_id'])){
+                $query['pro_id'] = implode(',',($where['p.pro_id'][1]));//组装pro_id=1,3,5塞进分页a标签的href里面
+            }else{
+                foreach($where as $k =>$v){
+                    if(strpos($k,'p.')!==false){
+                        $k=str_replace('p.','',$k);
+                    }elseif(strpos($k,'v.')){
+                        $k=str_replace('v.','',$k);
+                    }
+                    $v[1]=str_replace('%','',$v[1]);
+                    $query[$k]=implode(',',$v);
+                }
+            }
+
+
+            $where2['query'] = $query;
+            ///index/Index/showProduct?pro_id=1,3,5&page=2
             $sql= $this->alias('p')
                 ->field($field)
                 ->join('jh_vender v','p.pro_id = v.pro_id');
@@ -53,7 +75,7 @@ class Product extends Model{
                     }
 
                 $list=$sql->group('pro_id')
-                ->paginate(2,$totalNum,empty($where)?[]:$where);
+                ->paginate(4,$totalNum,$where2);
                 $result=$list->toArray()['data'];
         }catch (\Error $e){
             return ['code'=>$e->getCode(),'errormsg'=>$e->getMessage()];
@@ -97,10 +119,15 @@ class Product extends Model{
      * @return bool|false|int
      */
     public function saveProduct($data=[],$type=false){
+        $productValidate = new \app\index\validate\ProductValidate();
         if(empty($data))
             return false;
         try{
             if(empty($type)){
+                if(!($productValidate->scene('saveProduct')->check($data))){
+                   return ['msg' => $productValidate->getError(),'encode'=>$data['encode']];
+                }
+
                 $result=$this->allowField(true)->insertGetId($data);
                 return $result;
             }else{
@@ -110,10 +137,16 @@ class Product extends Model{
         }catch(\Error $e){
             return false;
         }catch(\Exception $e){
-            return false;
+            return ['encode'=>$data['encode'],'msg'=>'产品编码已存在'];
         }
 
     }
+
+    /**
+     * 产品图片信息
+     * @param array $where
+     * @return array|bool
+     */
     public function getProductImgs($where=[]){
         $fields=['img','pro_id'];
         $result=$this->field($fields)->where($where)->select();
@@ -136,4 +169,61 @@ class Product extends Model{
             return ['status'=>1,'data'=>$result];
         }
     }
+
+
+   
+    //=========================================================
+    /**
+     * 保存产品图片
+     * @param array $data  需要保存的产品
+     * @param string $type
+     * @return bool|false|int
+     */
+    public function saveProduct_images($data=[],$type=false,$where=[]){
+        if(empty($data))
+            return false;
+        try{
+            if(!$type){
+                $result=Db::name('photo_gallery')->insertGetId($data);
+                return $result;
+            }else{
+                $result=Db::name('photo_gallery')->where($where)->update($data);
+                return $result===false?false:true;
+            }
+        }catch(\Error $e){
+            return false;
+        }catch(\Exception $e){
+            return false;
+        }
+    }
+
+    /**
+     * 获取指定产品图片
+     * @param array $where
+    */
+    public function get_photo_gallery($where=[]){
+
+        $result = Db::name('photo_gallery')->where($where)->select();
+        if($result){
+            foreach($result as $k=>$v){
+                $result2[$k]['photo_id'] = $v['photo_id'];
+                $result2[$k]['photo_key'] = $v['photo_key'];
+            }
+            $result2 = json_encode($result2);
+        }else{
+            $result2 = '';
+        }
+        return $result2;
+
+    }
+
+    /*
+     * 删除图片
+     * @param string $id 图片主键id
+     */
+    public function del_photo_gallery($id){
+        $id = Db::name('photo_gallery')->delete($id);
+        return $id;
+    }
+
 }

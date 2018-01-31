@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>后台管理登录</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+		<link rel="stylesheet" href="/static/login/css/style_backstage.css">
+		<script src="/static/login/js/jquery-1.7.2.min.js"></script>
+        <script src="/static/login/js/jquery.md5.js" type="text/javascript"></script>
+		<style>
+
+		</style>
+	</head>
+
+	<body>
+		<div class="backstage-wrap">
+			<!-- <img src="/static/login/images/tx-backtitle.png" alt=""> -->
+		</div>
+		<div class="backstage-contain">
+			<img src="/static/login/images/bj_dabeijin.jpg" alt="">
+			<div class="backstage-form">
+				<form action="" method="">
+					<div class="backstage-t">管理者登录</div>
+					<div class="n">
+						<input type="text" placeholder="请输入管理者账号" id="name">
+					</div>
+					<div class="p">
+						<input type="password" placeholder="请输入管理者密码" id="password">
+					</div>
+                    <input type="hidden" id="md_password" value="{$Request.token}">
+					<div class="backstage-b"><div class="backstage-btn">登&nbsp;录</div></div>
+				</form>
+			</div>
+			<div class="backstage-tk">管理者账号或密码错误！</div>
+			<div class="backstage-tk1">请输入管理者账号!</div>
+			<div class="backstage-tk2">请输入管理者密码!</div>
+		</div>   
+
+	</body>
+	<script>
+		$(function () {
+			$(".backstage-btn").click(function () {
+				var username = $("#name").val();
+				var password = $("#password").val();
+				if (username == '') {
+					$(".backstage-tk1").fadeIn().delay(1000).fadeOut();
+					return false;
+				} else if (password == '') {
+					$(".backstage-tk2").fadeIn().delay(1000).fadeOut();
+					return false;
+				}
+                var md_password = $.md5($.md5(password)+$("#md_password").val());
+                var json = {
+                    password:$.md5(password),
+                    username:username,
+                    md_password:md_password
+//                    md_pass:$("#md_password").val(),
+//                    s_k:$.md5(password)+$("#md_password").val()
+                };
+				$.post('/index/Login/checkLogin', json, function (data) {
+					//console.log(data);
+					if (data.code == 1) {
+                        location.href = '/Index/index';
+                    }else{
+                        $(".backstage-tk").html(data.msg);
+                        $(".backstage-tk").fadeIn().delay(1000).fadeOut();
+                    }
+				}, 'json');
+			});
+		});
+	</script>
+
+</html>

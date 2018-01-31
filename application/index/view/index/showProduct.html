@@ -16,8 +16,8 @@
         <button name=""  class="btn btn-success radius" id="search" type="submit"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
     </form>
     <hr class="mt-10 mb-10"/>
-    <form action="/index/Index/importFile" method="post" enctype="multipart/form-data" class="f-l" id="form-import-data">
-        <input type="hidden" name="sss" value="ssss4">
+    <form action="/index/Index/showProduct" method="post" enctype="multipart/form-data" class="f-l" id="form-import-data">
+        <!--<input type="hidden" name="sss" value="ssss4">-->
         <span class="btn-upload form-group">
             <input class="input-text upload-url radius" type="text" name="uploadproductFile" id="uploadproductFile" readonly><a href="javascript:void();" class="btn btn-primary  radius"><i class="iconfont">&#xf0020;</i> 浏览文件</a>
             <input type="file" multiple name="productFile" class="input-file">
@@ -30,11 +30,11 @@
     <button name="" id="add" class="btn btn-success radius f-l ml-30" type="button" onclick="addProduct()"><i class="Hui-iconfont">&#xe610;</i> 添加产品</button>
     <button name="" id="delete" class="btn btn-danger radius f-l ml-30" type="button" onclick="deleteProductAll()"><i class="Hui-iconfont">&#xe609;</i> 批量删除</button>
 </div>
+<input type="hidden" id="iframe1_proid">
 <table class="table table-border table-bg table-bordered">
     <thead>
         <tr>
-            <td class="col-md-12" class="text-r"><input type="checkbox"  onclick="selectproids(this)" sameproid="proids"></td>
-            <th class="text-c col-1">序号</th>
+            <td class="col-md-12" class="text-r"><input type="checkbox"  onclick="selectProids(this)" sameproid="proids"></td>
             <th class="text-c col-1 ">时间</th>
             <th class="text-c col-1">产品编码</th>
             <th class="text-c col-1">中文名称</th>
@@ -50,7 +50,6 @@
         {foreach $details as $v}
         <tr>
             <td class="text-r"><input type="checkbox" proid="{$v.pro_id}" class="proids"></td>
-            <td class="text-c">{$v.pro_id}</td>
             <td>{$v.addtime|date="Y-m-d H:i",###}</td>
             <td>{$v.encode}</td>
             <td>{$v.pro_name}</td>
@@ -59,7 +58,9 @@
             <td>{$v.status}</td>
             <td>
                 <img src="{$v.img}" width="200" height="100"  alt="">
-                <span>更多》》</span>
+                <!-- <span>更多》》</span> -->
+                <button class="btn btn-secondary-outline radius size-MINI" onClick="alertpop({$v.pro_id})">更多</button>
+
             </td>
             <td>
 
@@ -126,6 +127,23 @@
 </div>
 {include file='/public/_footer'}
 {include file='public/_form'}
+
+
+<script type="text/javascript" src="__LAYUI__/lay/modules/layer.js"></script>
+<script type="text/javascript">
+    function alertpop(id){
+        $('#iframe1_proid').val(id);
+        layer.open({
+            type: 2,
+            title:'上传多张图片',
+            area: ['800px', '500px'],
+            content: 'load_images'
+        });
+    }
+</script>
+
+
+
 <script type="text/javascript">
 
     /**
@@ -348,28 +366,6 @@
      * 添加产品
      */
     function addProduct(){
-        /*
-        $("#form-add-product").validate({
-            rules:{},
-            onkeyup:false,
-            focusCleanup:true,
-            success:"valid",
-            submitHandler:function(form){
-                $(form).ajaxSubmit({
-                    type: 'post',
-                    url: "" ,
-                    dataType:'JSON',
-                    success: function(e){
-                        icotype= (e.code=='-1')?2:1;
-                        layer.msg(e.msg,{icon:icotype,time:1000});
-                    },
-                    error: function(XmlHttpRequest, textStatus, errorThrown){
-                        layer.msg('error!',{icon:1,time:1000});
-                    }
-                });
-            }
-        });
-        */
         //获取指定的
         layer.open({
             type: 2,

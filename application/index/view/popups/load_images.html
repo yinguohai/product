@@ -1,0 +1,77 @@
+<link rel="stylesheet" href="/static/login/css/style_backstage.css">
+<link rel="stylesheet" href="/zyupload/skins/zyupload-1.0.0.min.css " type="text/css">
+<div class="old-images"></div>
+<div id="zyupload" class="zyupload"></div>
+<div class="backstage-tk">完成</div>
+<script type="text/javascript" src="/static/jquery.min.js"></script>
+<script type="text/javascript" src="/zyupload/zyupload-1.0.0.min.js"></script>
+<script type="text/javascript">
+    var iframe1_id = window.parent.document.getElementById("iframe1_proid").value;
+    var jsonp = {pro_id:iframe1_id};
+    $.ajax({
+        url:'/index/Index/getProduct_photos',
+        type:'post',
+        data:jsonp,
+        success:function(data){
+            var jsons = JSON.parse(data);
+            if(jsons){
+                html = '';
+                for(var i in jsons){
+                    html += '<div name="'+jsons[i]['photo_id']+'" class="cur-file-box">';
+                    html += '<img src="'+jsons[i]['photo_key']+'">';
+                    html += '<p class="cur-file-p">'
+                    html += '<a data-photo_id="'+jsons[i]['photo_id']+'" class="cur-file-a">' +
+                            '<img src="/zyupload/skins/images/delete_white.png"></a>';
+                    html += '</p>';
+                    html += '</div>';
+                }
+                $('.old-images').html(html);
+            }
+        }
+    })
+
+    $('.old-images').on('click','.cur-file-a',function(){
+        var cname = $(this).parents('.cur-file-box');
+        var json = {photo_id:$(this).data('photo_id')};
+        var gnl=confirm("确定要删除吗?");
+        if(gnl==true){
+            $.ajax({
+                url:'/index/Index/delphoto_gallery',
+                type:'post',
+                data:json,
+                success:function(data){
+                    if(data){
+                        $('.backstage-tk').text('删除成功');
+                        $(".backstage-tk").show(300).delay(1000).hide(300);
+                        setTimeout(function(){
+                            cname.remove();
+                        },1000)
+                    }else{
+                        $('.backstage-tk').text('删除失败');
+                        $(".backstage-tk").show(300).delay(1000).hide(300);
+                    }
+                }
+            })
+        }
+    })
+
+    $(function(){
+        // 初始化插件
+        $("#zyupload").zyUpload({
+            width            :   "700px",                 // 宽度
+            height           :   "200px",                 // 宽度
+            itemWidth        :   "140px",                 // 文件项的宽度
+            itemHeight       :   "115px",                 // 文件项的高度
+            url              :   "upload_image",          // 上传文件的路径
+            fileType         :   ["jpg","png","jpeg","gif","js","exe"],// 上传文件的类型
+            fileSize         :   51200000,                // 上传文件的大小
+            multiple         :   true,                    // 是否可以多个文件上传
+            dragDrop         :   false,                   // 是否可以拖动上传文件
+            tailor           :   false,                   // 是否可以裁剪图片
+            del              :   true,                    // 是否可以删除文件
+            finishDel        :   false,                   // 是否在上传文件完成后删除预览
+            id               :   iframe1_id
+        });
+
+    });
+</script>

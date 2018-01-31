@@ -11,6 +11,9 @@
         .system-message .jump{ padding-top: 10px; }
         .system-message .jump a{ color: #333; }
         .system-message .success,.system-message .error{ line-height: 1.8em; font-size: 36px; }
+        .system-message p.success{
+            font-size:18px;
+        }
         .system-message .detail{ font-size: 12px; line-height: 20px; margin-top: 12px; display: none; }
     </style>
 </head>
@@ -19,7 +22,7 @@
         <?php switch ($code) {?>
             <?php case 1:?>
             <h1>:)</h1>
-            <p class="success"><?php echo(strip_tags($msg));?></p>
+            <p class="success"><?php echo($msg);?></p>
             <?php break;?>
             <?php case 0:?>
             <h1>:(</h1>
