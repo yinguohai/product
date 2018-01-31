@@ -148,8 +148,12 @@ class Product extends Model{
      * @return array|bool
      */
     public function getProductImgs($where=[]){
-        $fields=['img','pro_id'];
-        $result=$this->field($fields)->where($where)->select();
+        $fields=['p.img','p.pro_id','pg.photo_key'];
+        $result= $this->alias('p')
+            ->field($fields)
+            ->join('photo_gallery pg','p.pro_id = pg.use_index_id')
+            ->where($where)
+            ->select();
         if(!empty($result))
             return collection($result)->toArray();
         return false;

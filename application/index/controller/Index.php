@@ -324,12 +324,15 @@ class Index extends Mycontroller
         $result = [];
         foreach ($productInfo as $k => $v) {
             //比较结果
-            $flag = ImageHash::isImageFileSimilar($fileInfo['path'], $pathDir . $v['img']);
+            $flag = ImageHash::isImageFileSimilar($fileInfo['path'], $pathDir . $v['img']) || ImageHash::isImageFileSimilar($fileInfo['path'], $pathDir . $v['photo_key']);
             if ($flag) {
                 array_push($result, $v);
             }
         }
-        $where['p.pro_id'] = ['in', array_column($result, 'pro_id')];
+        //删除  上传的搜索图片
+        if(file_exists($fileInfo['path']))
+            unlink($fileInfo['path']);
+        $where['p.pro_id'] = ['in', array_unique(array_column($result, 'pro_id'))];
         return $where;
     }
 
