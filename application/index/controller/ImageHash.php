@@ -9,11 +9,11 @@ class ImageHash
      * */
     public static $rate = 2;
 
-    /**相似度允许值 0~64
+    /**相似度允许值 0~80
      * @access public
      * @staticvar int
      * */
-    public static $similarity = 80;
+    public static $similarity = 70;
 
     /**图片类型对应的开启函数
      * @access private
