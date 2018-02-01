@@ -378,14 +378,17 @@ class Index extends Mycontroller
         //获取图片的栏目代码
         $columnCode = preg_replace('/[0-9]/', '', $codata);
         //拼接数据
+        vendor('PHPExcel.PHPExcel.Shared.Date.php');
         for ($row = 2; $row <= $rows; $row++) {
             for ($column = 'A'; $column <= $columns; $column++) {
                 if ($column == $columnCode && isset($dataRows[$column . $row])) {
-                    //如果是时间
+                    //如果是图片
                     $result[$row][] = $dataRows[$column . $row];
                 } elseif ($column == 'A') {
                     //如果是时间，则转时间戳
-                    $result[$row][] = strtotime($sheet->getCell($column . $row)->getValue());
+                    $val = $sheet->getCell($column . $row)->getValue();
+                    $result[$row][] = \PHPExcel_Shared_Date::ExcelToPHP($val);//excel时间格式转换为时间戳PHPExcel_Shared_Date::ExcelToPHP
+//                    $result[$row][] = strtotime($sheet->getCell($column . $row)->getValue());
                 } else {
                     $result[$row][] = $sheet->getCell($column . $row)->getValue();
                 }

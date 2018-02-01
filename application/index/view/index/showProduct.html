@@ -50,7 +50,7 @@
         {foreach $details as $v}
         <tr>
             <td class="text-r"><input type="checkbox" proid="{$v.pro_id}" class="proids"></td>
-            <td>{$v.addtime|date="Y-m-d H:i",###}</td>
+            <td>{$v.addtime|date="Y-m-d",###}</td>
             <td>{$v.encode}</td>
             <td>{$v.pro_name}</td>
             <td>{$v.pro_enname}</td>
