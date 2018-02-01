@@ -15,7 +15,13 @@ class Login extends Controller{
     public function checkLogin(){
         $post = input('post.');
         $__token__ = session('__token__');
-        $admin_info = Admin::where(['username'=>$post['username']])->field('admin_id,username,password,email,phone,lock,login_count,is_super')->find();
+        try{
+            $admin_info = Admin::where(['username'=>$post['username']])->field('admin_id,username,password,email,phone,lock,login_count,is_super')->find();
+        }catch(\Error $e){
+            outputJson(5,'数据库操作失败1');
+        }catch(\Exception $e){
+            outputJson(6,'数据库操作失败2');
+        }
 
         //用户名正确，但是密码输入错误5次之后账号会锁定，解锁之后才能重新使用
         if($admin_info){
@@ -71,6 +77,7 @@ class Login extends Controller{
         (new Admin())->isUpdate(true)->save($loginData);
         ALog::login($admin_info->admin_id, 'success');
         outputJson(1,'登录成功');
+
 
     }
 

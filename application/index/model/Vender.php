@@ -17,6 +17,7 @@ class Vender extends Model{
      * @return bool|false|int
      */
     public function addVender($data,$multi=false,$type=false){
+        $venderValidate = new \app\index\validate\ProductValidate();
         if(empty($data))
             return false;
         try{
@@ -24,8 +25,15 @@ class Vender extends Model{
                 $result=$this->allowField(true)->save($data);
             }else{
                 if($type){
-                    $this->allowField(true)->insertAll($data);
-                    $result=$this->getLastInsID();
+                    foreach($data as $v){
+                        if(!($venderValidate->scene('saveVender')->check($v))){
+                            return ['msg' => $venderValidate->getError(),'v_num'=>$v['v_num']];
+                        }
+                        $result=$this->allowField(true)->insertGetId($v);
+                        return $result;
+                    }
+                    /*$this->allowField(true)->insertAll($data);
+                    $result=$this->getLastInsID();*/
                 }else{
                     $result=$this->allowField(true)->saveAll($data);
                 }
