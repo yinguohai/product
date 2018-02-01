@@ -104,7 +104,6 @@ class Index extends Mycontroller
         $where = $indexLogical->getProductWhere($this->request->post()); //获取条件
         if ($extwhere){
             $where = $extwhere;
-            $o_where['pro_id'] = implode(',',$extwhere['p.pro_id'][1]);
         }
         if($this->request->isGet()){
             if($this->request->get()){
@@ -332,10 +331,7 @@ class Index extends Mycontroller
                 array_push($result, $v);
             }
         }
-        //删除  上传的搜索图片
-        if(file_exists($fileInfo['path']))
-            unlink($fileInfo['path']);
-        $where['p.pro_id'] = ['in', array_unique(array_column($result, 'pro_id'))];
+        $where['p.pro_id'] = ['in', array_column($result, 'pro_id')];
         return $where;
     }
 

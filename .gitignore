@@ -1,1 +1,3 @@
-/.idea
+.idea/*
+.idea/workspace.xml
+application/database.php
