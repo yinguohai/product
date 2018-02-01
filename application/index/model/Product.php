@@ -151,7 +151,7 @@ class Product extends Model{
         $fields=['p.img','p.pro_id','pg.photo_key'];
         $result= $this->alias('p')
             ->field($fields)
-            ->join('photo_gallery pg','p.pro_id = pg.use_index_id')
+            ->join('photo_gallery pg','p.pro_id = pg.use_index_id','left')
             ->where($where)
             ->select();
         if(!empty($result))
