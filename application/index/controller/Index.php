@@ -104,7 +104,9 @@ class Index extends Mycontroller
         $where = $indexLogical->getProductWhere($this->request->post()); //获取条件
         if ($extwhere){
             $where = $extwhere;
+            $o_where['pro_id'] = implode(',',$extwhere['p.pro_id'][1]);
         }
+
         if($this->request->isGet()){
             if($this->request->get()){
                 if ($this->request->get('pro_id')) {
@@ -331,7 +333,10 @@ class Index extends Mycontroller
                 array_push($result, $v);
             }
         }
-        $where['p.pro_id'] = ['in', array_column($result, 'pro_id')];
+        //删除  上传的搜索图片
+        if(file_exists($fileInfo['path']))
+            unlink($fileInfo['path']);
+        $where['p.pro_id'] = ['in', array_unique(array_column($result, 'pro_id'))];
         return $where;
     }
 
@@ -384,7 +389,6 @@ class Index extends Mycontroller
                     //如果是时间，则转时间戳
                     $val = $sheet->getCell($column . $row)->getValue();
                     $result[$row][] = \PHPExcel_Shared_Date::ExcelToPHP($val);//excel时间格式转换为时间戳PHPExcel_Shared_Date::ExcelToPHP
-//                    $result[$row][] = strtotime($sheet->getCell($column . $row)->getValue());
                 } else {
                     $result[$row][] = $sheet->getCell($column . $row)->getValue();
                 }
@@ -543,64 +547,6 @@ class Index extends Mycontroller
         $objWriter->save("php://output");
 
     }
-
-
-    //导入产品表
-    public function xiaohua_importFile(){
-        $path=ROOT_PATH.'public'.DS.'uploads'.DS.'excel'.DS;
-        $imgPath=ROOT_PATH.'public'.DS.'uploads'.DS.date('Ymd',time()).DS;
-        if(!file_exists($imgPath))
-            mkdir($imgPath);
-        $descPath=DS.'uploads'.DS.date('Ymd',time()).DS;
-        //文件上传，自定义的
-        $fileInfo = uploadFile('productFile',$path,['xls','xlsx']);
-        if(empty($fileInfo['filename']))
-            $this->error($fileInfo['msg']);
-        //加载PHPExcel类,识别  xlsx后缀文件
-        $obj=$this->getReaderExcel($fileInfo['ext']);
-        //加载PHPExcel类，识别   xls后缀文件
-        $objFile= $obj->load($fileInfo['path']);
-
-        //获取表中的第一个工作表，如果要获取第二个，把0改为1，依次类推
-        $currentSheet=$objFile->getSheet(0);
-
-        //获取总列数
-        $allColumn = $currentSheet->getHighestColumn();
-        //获取总行数
-        $allRow = $currentSheet->getHighestRow();
-        //循环获取表中的数据，$currentRow表示当前行，从哪行开始读取数据，索引值从0开始
-        for ($currentRow = 2; $currentRow <= $allRow; $currentRow++) {
-            //从哪列开始，A表示第一列
-            for ($currentColumn = 'A'; $currentColumn <= $allColumn; $currentColumn++) {
-                //数据坐标
-                $address = $currentColumn . $currentRow;
-                //读取到的数据，保存到数组$arr中
-                $data[$currentRow][$currentColumn] = $currentSheet->getCell($address)->getValue();
-            }
-        }
-        $this->save_import($data);
-    }
-
-    //保存导入数据
-    public function save_import($data) {
-        foreach ($data as $k => $v) {
-            if ($k > 1) {
-                $date['area'] = ucfirst(strtolower($v['A']));
-                $date['city'] = ucfirst(strtolower($v['B']));
-                $date['provice'] = ucfirst(strtolower($v['C']));
-                $result = Db::name('inta')->insert($date);
-            }
-        }
-        if ($result) {
-            $num = Db::name('inta')->count();
-            $this->success('数据导入成功' . '，现在inta表有<span style="color:red">' . $num . '</span>条数据了！');
-        } else {
-            $this->error('数据导入失败');
-        }
-    }
-
-
-
 
 }
 

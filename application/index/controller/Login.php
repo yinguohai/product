@@ -18,9 +18,9 @@ class Login extends Controller{
         try{
             $admin_info = Admin::where(['username'=>$post['username']])->field('admin_id,username,password,email,phone,lock,login_count,is_super')->find();
         }catch(\Error $e){
-            outputJson(5,'数据库操作失败1');
+            outputJson(5,'网络连接失败1');
         }catch(\Exception $e){
-            outputJson(6,'数据库操作失败2');
+            outputJson(6,'网络连接失败2');
         }
 
         //用户名正确，但是密码输入错误5次之后账号会锁定，解锁之后才能重新使用
