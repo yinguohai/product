@@ -55,7 +55,8 @@ class Product extends Model{
                         $k=str_replace('v.','',$k);
                     }
                     $v[1]=str_replace('%','',$v[1]);
-                    $query[$k]=implode(',',$v);
+//                    $query[$k]=implode(',',$v);
+                    $query[$k] = $v[1];
                 }
             }
 

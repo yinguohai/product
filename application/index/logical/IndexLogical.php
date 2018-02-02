@@ -22,6 +22,9 @@ class IndexLogical
         foreach ($condition as $k => $v) {
             if(empty($v))
                 continue;
+            if(strcasecmp($k,'page')===0)
+                continue;
+
             if (in_array($k, $venderField)) {
                 $where['v.' . $k] = ['like', '%' . $v . '%'];
             }elseif(strcasecmp($k,'starttime')===0) {
@@ -35,39 +38,6 @@ class IndexLogical
             }
         }
         return $where;
-    }
-
-    public function getProductWhere_get($condition=[])
-    {
-
-        if (empty($condition) or !is_array($condition))
-            return '';
-        $venderField = ['v_name', 'v_num', 'source_href'];
-        $venderField2 = ['v.v_name', 'v.v_num', 'v.source_href','p.encode','p.pro_name','p.pro_enname'];
-        $where=[];
-        foreach ($condition as $k => $v) {
-            if(empty($v))
-                continue;
-            if($k=='page')
-                continue;
-            if (in_array($k, $venderField)) {
-                $where['v.' . $k] = explode(',',$v);
-            }elseif(strcasecmp($k,'starttime')===0) {
-                $where['p.addtime'] = ['egt', $v];
-            }elseif(strcasecmp($k,'endtime')===0){
-                $where['p.addtime']=['elt',$v];
-            }else{
-                $where['p.'.$k] = explode(',',$v);
-            }
-        }
-        $where2 = [];
-        foreach ($where as $k => $v) {
-            if (in_array($k, $venderField2)) {
-                $v[1] = '%'.end($v).'%';
-            }
-            $where2[$k] = $v;
-        }
-        return $where2;
     }
 
     public function getHandleWhere($where=[]){

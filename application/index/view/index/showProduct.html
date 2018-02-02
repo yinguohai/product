@@ -3,6 +3,7 @@
 
 <div class="text-l ml-10  mt-20 mb-50">
     <form action="/index/Index/showProduct" method="post" name="form-show-product" id="form-show-product">
+        <input type="hidden" name="page" id="page" value='{notempty name="condition.page"}{$condition.page}{/notempty}' placeholder="序号" style="width:100px" class="input-text radius mr-5">
         <input type="hidden" name="pro_id" id="pro_id" value='{notempty name="condition.pro_id"}{$condition.pro_id}{/notempty}' placeholder="序号" style="width:100px" class="input-text radius mr-5">
         <input type="text" name="encode" id="encode" value='{notempty name="condition.encode"}{$condition.encode}{/notempty}' placeholder=" 编码" style="width:150px" class="input-text radius mr-5">
         <input type="text" name="pro_name" id="pro_name" value='{notempty name="condition.pro_name"}{$condition.pro_name}{/notempty}' placeholder="产品简称" style="width:150px" class="input-text radius mr-5">

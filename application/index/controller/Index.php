@@ -111,9 +111,12 @@ class Index extends Mycontroller
             if($this->request->get()){
                 if ($this->request->get('pro_id')) {
                     $where['p.pro_id'] = ['in',explode(',',$this->request->get('pro_id'))];
+                    $o_where['pro_id'] = $this->request->get('pro_id');
+                    $o_where['page'] = $this->request->get('page');
                 }else{
                     $p_w = $this->request->get();
-                    $where = $indexLogical->getProductWhere_get($p_w); //获取条件
+                    $where = $indexLogical->getProductWhere($p_w); //获取条件
+                    $o_where = $p_w;
                 }
             }
         }
